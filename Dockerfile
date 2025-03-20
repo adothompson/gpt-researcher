@@ -1,21 +1,39 @@
 # Stage 1: Browser and build tools installation
 FROM python:3.11.4-slim-bullseye AS install-browser
 
-# Install Chromium, Chromedriver, Firefox, Geckodriver, and build tools in one layer
-RUN apt-get update \
-    && apt-get install -y gnupg wget ca-certificates --no-install-recommends \
-    && wget -qO - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable chromium-driver \
-    && google-chrome --version && chromedriver --version \
-    && apt-get install -y --no-install-recommends firefox-esr build-essential \
-    && wget https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz \
-    && tar -xvzf geckodriver-v0.33.0-linux64.tar.gz \
-    && chmod +x geckodriver \
-    && mv geckodriver /usr/local/bin/ \
-    && rm geckodriver-v0.33.0-linux64.tar.gz \
-    && rm -rf /var/lib/apt/lists/*  # Clean up apt lists to reduce image size
+# Install browser dependencies in separate steps to improve build resilience
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Chromium and Firefox from Debian repositories (works on both amd64 and arm64)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    chromium \
+    chromium-driver \
+    firefox-esr \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Selenium
+RUN pip install --no-cache-dir selenium==4.15.2 webdriver-manager==4.0.1
+
+# Install geckodriver based on architecture
+RUN ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then \
+       wget -q https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz && \
+       tar -xzf geckodriver-v0.33.0-linux64.tar.gz && \
+       chmod +x geckodriver && \
+       mv geckodriver /usr/local/bin/ && \
+       rm geckodriver-v0.33.0-linux64.tar.gz; \
+    elif [ "$ARCH" = "arm64" ]; then \
+       wget -q https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux-aarch64.tar.gz && \
+       tar -xzf geckodriver-v0.33.0-linux-aarch64.tar.gz && \
+       chmod +x geckodriver && \
+       mv geckodriver /usr/local/bin/ && \
+       rm geckodriver-v0.33.0-linux-aarch64.tar.gz; \
+    fi
 
 # Stage 2: Python dependencies installation
 FROM install-browser AS gpt-researcher-install

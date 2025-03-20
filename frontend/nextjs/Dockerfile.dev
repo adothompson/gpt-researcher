@@ -1,6 +1,21 @@
 FROM node:18.17.0-alpine
+
+# Add package mirrors for improved reliability
+RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
+    echo "network-timeout=60000" >> ~/.npmrc && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 5000 && \
+    npm config set fetch-retry-maxtimeout 60000
+
 WORKDIR /app
-COPY ./package.json ./
-RUN npm install --legacy-peer-deps
+
+# Copy package files first for better layer caching
+COPY ./package.json ./package-lock.json* ./
+
+# Install dependencies with increased timeout and retry settings
+RUN npm install --legacy-peer-deps --no-fund --loglevel=error --fetch-timeout=300000
+
+# Copy the rest of the application
 COPY . .
+
 CMD ["npm", "run", "dev"]
