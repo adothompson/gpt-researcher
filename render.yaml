@@ -1,8 +1,9 @@
+# Render Blueprint specification
 services:
   # Backend API service (not publicly accessible)
   - type: web
     name: gpt-researcher-api
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: standard
@@ -19,17 +20,15 @@ services:
       - key: LOGGING_LEVEL
         value: INFO
     disk:
-      name: gpt-researcher-data
+      name: gpt-researcher-disk
       mountPath: /usr/src/app/outputs
       sizeGB: 10
     autoDeploy: false
-    # Make this service private (not publicly accessible)
-    private: true
 
   # Frontend NextJS service (publicly accessible)
   - type: web
     name: gpt-researcher-frontend
-    env: docker
+    runtime: docker
     dockerfilePath: ./frontend/nextjs/Dockerfile.dev
     dockerContext: ./frontend/nextjs
     plan: standard
@@ -38,12 +37,7 @@ services:
     healthCheckPath: /
     envVars:
       - key: NEXT_PUBLIC_GPTR_API_URL
-        fromService:
-          name: gpt-researcher-api
-          type: web
-          property: host
-        # Prepend with https:// and append with port
-        value: https://$$HOST:8000
+        value: http://gpt-researcher-api:8000
       - key: NEXT_PUBLIC_GA_MEASUREMENT_ID
         sync: false
       - key: CHOKIDAR_USEPOLLING
@@ -51,9 +45,3 @@ services:
       - key: NODE_ENV
         value: production
     autoDeploy: false
-
-# Define a disk for persistent storage
-disks:
-  - name: gpt-researcher-data
-    mountPath: /usr/src/app/outputs
-    sizeGB: 10
