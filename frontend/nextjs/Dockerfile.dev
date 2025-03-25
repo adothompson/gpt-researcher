@@ -1,7 +1,9 @@
-FROM node:18.17.0-alpine AS base
+# Use a specific Node.js version for better stability
+FROM node:18.17.0-alpine
 
-# Set memory limits for Node.js
-ENV NODE_OPTIONS="--max-old-space-size=512 --max-semi-space-size=64"
+# Set environment variables for production and memory limits
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512"
 
 # Add package mirrors for improved reliability
 RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
@@ -13,40 +15,19 @@ RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
 WORKDIR /app
 
 # Copy package files first for better layer caching
-COPY ./package.json ./package-lock.json* ./
+COPY package.json ./
 
-# Install production dependencies only
-FROM base AS deps
-RUN npm ci --only=production --legacy-peer-deps --no-fund --loglevel=error
+# Install dependencies with optimized settings
+RUN npm install --production=false --legacy-peer-deps --no-fund --loglevel=error
 
-# Build the application
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# Copy the rest of the application
 COPY . .
 
-# Build the application with production flag
+# Build the application with production settings
 RUN npm run build
 
-# Production image
-FROM node:18.17.0-alpine AS runner
-WORKDIR /app
-
-ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=512"
-
-# Copy necessary files from builder
-COPY --from=builder /app/next.config.mjs ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-# Use a non-root user for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs && \
-    chown -R nextjs:nodejs /app
-
-USER nextjs
-
+# Set up for production runtime
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Start the application in production mode
+CMD ["npm", "run", "start"]
