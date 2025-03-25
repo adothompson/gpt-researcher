@@ -6,7 +6,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: standard
+    plan: starter
     branch: main
     numInstances: 1
     healthCheckPath: /health
@@ -31,7 +31,7 @@ services:
     runtime: docker
     dockerfilePath: ./frontend/nextjs/Dockerfile.dev
     dockerContext: ./frontend/nextjs
-    plan: standard
+    plan: starter
     branch: main
     numInstances: 1
     healthCheckPath: /
