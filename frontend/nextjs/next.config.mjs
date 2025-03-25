@@ -4,8 +4,6 @@ const nextConfig = {
   swcMinify: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  // Optimize build output
-  output: 'standalone',
   // Fix CSS module issues
   webpack: (config) => {
     // Optimize chunk size

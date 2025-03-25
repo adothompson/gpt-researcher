@@ -30,5 +30,5 @@ RUN npm run build
 # Set up for production runtime
 EXPOSE 3000
 
-# Start the application in production mode with standalone output
-CMD ["node", ".next/standalone/server.js"]
+# Start the application in production mode
+CMD ["npm", "run", "start"]
