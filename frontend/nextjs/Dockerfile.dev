@@ -9,10 +9,11 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json ./
+COPY package-lock.json* ./
 
-# Install only the dependencies needed for development
-# Using --no-optional to reduce memory usage
-RUN npm install --omit=dev --no-optional --no-fund --loglevel=error
+# Install all dependencies (including dev) since we're in development mode
+# but use memory optimization flags
+RUN npm install --legacy-peer-deps --no-fund --loglevel=error
 
 # Copy application files
 COPY next.config.mjs ./
