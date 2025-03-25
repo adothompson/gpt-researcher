@@ -6,7 +6,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter
+    plan: standard
     branch: master
     numInstances: 1
     healthCheckPath: /health
