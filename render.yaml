@@ -40,8 +40,18 @@ services:
         value: http://gpt-researcher-api:8000
       - key: NEXT_PUBLIC_GA_MEASUREMENT_ID
         sync: false
-      - key: CHOKIDAR_USEPOLLING
-        value: "true"
       - key: NODE_ENV
         value: production
+      # Memory optimization settings
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=512 --max-semi-space-size=64"
+      # Disable file watching to reduce memory usage
+      - key: CHOKIDAR_USEPOLLING
+        value: "false"
+      # Optimize for production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # Cache optimization
+      - key: NEXT_SHARP_PATH
+        value: "/tmp/node_modules/sharp"
     autoDeploy: false

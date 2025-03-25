@@ -1,4 +1,7 @@
-FROM node:18.17.0-alpine
+FROM node:18.17.0-alpine AS base
+
+# Set memory limits for Node.js
+ENV NODE_OPTIONS="--max-old-space-size=512 --max-semi-space-size=64"
 
 # Add package mirrors for improved reliability
 RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
@@ -12,10 +15,38 @@ WORKDIR /app
 # Copy package files first for better layer caching
 COPY ./package.json ./package-lock.json* ./
 
-# Install dependencies with increased timeout and retry settings
-RUN npm install --legacy-peer-deps --no-fund --loglevel=error --fetch-timeout=300000
+# Install production dependencies only
+FROM base AS deps
+RUN npm ci --only=production --legacy-peer-deps --no-fund --loglevel=error
 
-# Copy the rest of the application
+# Build the application
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-CMD ["npm", "run", "dev"]
+# Build the application with production flag
+RUN npm run build
+
+# Production image
+FROM node:18.17.0-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Copy necessary files from builder
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Use a non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
