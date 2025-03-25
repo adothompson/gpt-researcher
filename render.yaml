@@ -7,7 +7,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     plan: starter
-    branch: main
+    branch: master
     numInstances: 1
     healthCheckPath: /health
     envVars:
@@ -32,7 +32,7 @@ services:
     dockerfilePath: ./frontend/nextjs/Dockerfile.dev
     dockerContext: ./frontend/nextjs
     plan: starter
-    branch: main
+    branch: master
     numInstances: 1
     healthCheckPath: /
     envVars:
