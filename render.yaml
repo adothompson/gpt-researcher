@@ -39,21 +39,25 @@ services:
       - key: NEXT_PUBLIC_GPTR_API_URL
         value: http://gpt-researcher-api:8000
       - key: NEXT_PUBLIC_GA_MEASUREMENT_ID
-        sync: false
+        value: ""
+      - key: DISCORD_BOT_TOKEN
+        value: ""
+      - key: DISCORD_CLIENT_ID
+        value: ""
       - key: NODE_ENV
-        value: production
+        value: development
       - key: PORT
         value: 3000
       # Memory optimization settings
       - key: NODE_OPTIONS
-        value: "--max-old-space-size=512 --max-semi-space-size=64"
+        value: "--max-old-space-size=512"
       # Disable file watching to reduce memory usage
       - key: CHOKIDAR_USEPOLLING
         value: "false"
-      # Optimize for production
+      # Disable telemetry
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      # Cache optimization
-      - key: NEXT_SHARP_PATH
-        value: "/tmp/node_modules/sharp"
+      # Garbage collection settings
+      - key: NODE_GC_INTERVAL
+        value: "5000"
     autoDeploy: false

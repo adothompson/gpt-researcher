@@ -1,34 +1,57 @@
-# Use a specific Node.js version for better stability
-FROM node:18.17.0-alpine
+# Build stage
+FROM node:18.17.0-alpine AS builder
 
-# Set environment variables for production and memory limits
-ENV NODE_ENV=production
+# Set memory limits for the build process
 ENV NODE_OPTIONS="--max-old-space-size=512"
-ENV PORT=3000
 
-# Add package mirrors for improved reliability
-RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
-    echo "network-timeout=60000" >> ~/.npmrc && \
-    npm config set fetch-retries 3 && \
-    npm config set fetch-retry-mintimeout 5000 && \
-    npm config set fetch-retry-maxtimeout 60000
-
+# Set the working directory
 WORKDIR /app
 
-# Copy package files first for better layer caching
+# Copy package files
 COPY package.json ./
 
-# Install dependencies with optimized settings
-RUN npm install --production=false --legacy-peer-deps --no-fund --loglevel=error
+# Install only the dependencies needed for development
+# Using --no-optional to reduce memory usage
+RUN npm install --omit=dev --no-optional --no-fund --loglevel=error
 
-# Copy the rest of the application
-COPY . .
+# Copy application files
+COPY next.config.mjs ./
+COPY public ./public
+COPY app ./app
+COPY components ./components
+COPY styles ./styles
+COPY utils ./utils
+COPY actions ./actions
+COPY config ./config
+COPY helpers ./helpers
+COPY hooks ./hooks
+COPY types ./types
+COPY tailwind.config.ts ./
+COPY postcss.config.mjs ./
+COPY tsconfig.json ./
 
-# Build the application with production settings
-RUN npm run build
+# Runtime stage - smaller image
+FROM node:18.17.0-alpine
 
-# Set up for production runtime
+# Set environment variables
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NEXT_TELEMETRY_DISABLED="1"
+
+# Set default values for missing environment variables
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=""
+ENV DISCORD_BOT_TOKEN=""
+ENV DISCORD_CLIENT_ID=""
+
+# Set the working directory
+WORKDIR /app
+
+# Copy from builder stage
+COPY --from=builder /app ./
+
+# Expose the port
 EXPOSE 3000
 
-# Start the application in production mode
-CMD ["npm", "run", "start"]
+# Start the development server
+CMD ["npm", "run", "dev"]
