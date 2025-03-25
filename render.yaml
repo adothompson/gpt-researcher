@@ -31,7 +31,7 @@ services:
     runtime: docker
     dockerfilePath: ./frontend/nextjs/Dockerfile.dev
     dockerContext: ./frontend/nextjs
-    plan: starter
+    plan: standard
     branch: master
     numInstances: 1
     healthCheckPath: /
