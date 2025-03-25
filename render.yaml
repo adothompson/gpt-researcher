@@ -42,6 +42,8 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3000
       # Memory optimization settings
       - key: NODE_OPTIONS
         value: "--max-old-space-size=512 --max-semi-space-size=64"

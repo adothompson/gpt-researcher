@@ -4,7 +4,7 @@ FROM node:18.17.0-alpine
 # Set environment variables for production and memory limits
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=512"
-ENV PORT=10000
+ENV PORT=3000
 
 # Add package mirrors for improved reliability
 RUN echo "registry=https://registry.npmjs.org/" > ~/.npmrc && \
@@ -28,7 +28,7 @@ COPY . .
 RUN npm run build
 
 # Set up for production runtime
-EXPOSE 10000
+EXPOSE 3000
 
 # Start the application in production mode with standalone output
 CMD ["node", ".next/standalone/server.js"]
