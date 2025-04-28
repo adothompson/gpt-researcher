@@ -27,7 +27,7 @@ class ReportGenerator:
             "headers": self.researcher.headers,
         }
 
-    async def write_report(self, existing_headers: list = [], relevant_written_contents: list = [], ext_context=None) -> str:
+    async def write_report(self, existing_headers: list = [], relevant_written_contents: list = [], ext_context=None, custom_prompt="") -> str:
         """
         Write a report based on existing headers and relevant contents.
 
@@ -35,6 +35,7 @@ class ReportGenerator:
             existing_headers (list): List of existing headers.
             relevant_written_contents (list): List of relevant written contents.
             ext_context (Optional): External context, if any.
+            custom_prompt (str): Custom prompt for the report.
 
         Returns:
             str: The generated report.
@@ -62,6 +63,7 @@ class ReportGenerator:
 
         report_params = self.research_params.copy()
         report_params["context"] = context
+        report_params["custom_prompt"] = custom_prompt
 
         if self.researcher.report_type == "subtopic_report":
             report_params.update({
@@ -110,6 +112,7 @@ class ReportGenerator:
             agent_role_prompt=self.researcher.cfg.agent_role or self.researcher.role,
             cost_callback=self.researcher.add_costs,
             websocket=self.researcher.websocket,
+            prompt_family=self.researcher.prompt_family,
         )
 
         if self.researcher.verbose:
@@ -139,6 +142,7 @@ class ReportGenerator:
             config=self.researcher.cfg,
             websocket=self.researcher.websocket,
             cost_callback=self.researcher.add_costs,
+            prompt_family=self.researcher.prompt_family,
         )
 
         if self.researcher.verbose:
@@ -166,6 +170,7 @@ class ReportGenerator:
             data=self.researcher.context,
             config=self.researcher.cfg,
             subtopics=self.researcher.subtopics,
+            prompt_family=self.researcher.prompt_family,
         )
 
         if self.researcher.verbose:
@@ -196,6 +201,7 @@ class ReportGenerator:
             websocket=self.researcher.websocket,
             config=self.researcher.cfg,
             cost_callback=self.researcher.add_costs,
+            prompt_family=self.researcher.prompt_family,
         )
 
         if self.researcher.verbose:
